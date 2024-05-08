@@ -1,0 +1,1 @@
+ Get-ADComputer -Filter * -Properties * | Sort LastLogon | Select Name, LastLogonDate, OperatingSystem, DNSHostName, Created, PasswordLastSet
