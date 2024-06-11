@@ -1,0 +1,16 @@
+Office install on RDS server witch all users can use normaly. Please intall besore Office Deplyment tool
+https://www.microsoft.com/en-us/download/details.aspx?id=49117
+
+In my case i use 32 bit.
+
+
+
+Script
+<Configuration>
+  <Add OfficeClientEdition="32" Version="16.0.16130.20332" >  // оффис версия для 12р 
+    <Product ID="O365ProPlusRetail">
+      <Language ID="en-us" />
+    </Product>
+  </Add>  
+<Property Name="SharedComputerLicensing" Value="1" />
+</Configuration>
