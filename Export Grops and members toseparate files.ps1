@@ -1,4 +1,4 @@
-﻿ $groups = Get-ADGroup -filter * -SearchBase "DC=monik,DC=ee"
+﻿ $groups = Get-ADGroup -filter * -SearchBase "DC=pavel,DC=ee"
 
 ForEach ($g in $groups) 
 
