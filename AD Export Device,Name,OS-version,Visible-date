@@ -1,0 +1,23 @@
+#Script create rapport from AD, Exporting Windows devices with name, last visible date, OS version
+
+
+$computers = Get-ADComputer -Filter "OperatingSystem -like '*Windows*'" -Property Name, OperatingSystem, LastLogonDate
+
+# Create an array to store results
+$results = @()
+
+foreach ($computer in $computers) {
+    $results += [PSCustomObject]@{
+        'Device Name'     = $computer.Name
+        'Windows Version' = $computer.OperatingSystem
+        'Last Sync (AD)'  = $computer.LastLogonDate
+    }
+}
+
+# Output results to console
+$results | Format-Table -AutoSize
+
+# Export results to CSV
+$results | Export-Csv -Path "C:\INST\WindowsDevicesReport.csv" -NoTypeInformation
+
+Write-Host "Report generated: C:\INST\WindowsDevicesReport.csv"
