@@ -1,0 +1,47 @@
+# Root folder
+$rootPath = "S:\folderName"
+# Output text file
+$outputTxt = "C:\Example\acl_tree_report_earth.txt"
+
+# Get all folders recursively including root
+$folders = Get-ChildItem -Path $rootPath -Recurse -Directory -Force
+$folders += Get-Item -Path $rootPath  # Include root
+
+# Normalize root
+$normalizedRoot = $rootPath.TrimEnd('\')
+
+# Prepare the output list
+$output = @()
+
+foreach ($folder in $folders | Sort-Object FullName) {
+    try {
+        # Compute relative path and depth
+        $relativePath = $folder.FullName.Substring($normalizedRoot.Length).TrimStart('\')
+        $depth = ($relativePath -split '\\').Count
+        if ($relativePath -eq '') { $relativePath = '.'; $depth = 0 }
+
+        # Tree indentation
+        $indent = '│   ' * $depth
+        $folderDisplay = if ($depth -eq 0) { $folder.Name } else { "├── $($folder.Name)" }
+
+        $output += "$indent$folderDisplay"
+
+        $acl = Get-Acl -Path $folder.FullName
+
+        foreach ($access in $acl.Access) {
+            $aclLine = "$indent    └─ [$($access.AccessControlType)] $($access.IdentityReference) => $($access.FileSystemRights)"
+            if ($access.IsInherited) {
+                $aclLine += " (Inherited)"
+            }
+            $output += $aclLine
+        }
+
+    } catch {
+        $output += "$indent└─ [Error reading ACLs: $_]"
+    }
+}
+
+# Write to text file
+$output | Set-Content -Path $outputTxt -Encoding UTF8
+
+Write-Host "Text-based ACL tree report written to $outputTxt"
