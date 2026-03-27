@@ -1,23 +1,30 @@
-﻿ $groups = Get-ADGroup -filter * -SearchBase "DC=pavel,DC=ee"
+$outputFolder = "C:\Data"
+If (!(Test-Path $outputFolder)) {
+    New-Item -ItemType Directory -Path $outputFolder | Out-Null
+}
 
-ForEach ($g in $groups) 
+$groups = Get-ADGroup -Filter * -SearchBase "DC=pavel,DC=ee"
 
-{
+ForEach ($g in $groups) {
 
-$path = "c:\Data\" + $g.Name + ".csv"
+    $path = "$outputFolder\$($g.Name).csv"
 
-Get-ADGroup -Identity $g.Name -Properties * | select name,description | Out-File $path -Append
+    # Get group info + members into a single collection
+    $rows = @()
 
-$results = Get-ADGroupMember -Identity $g.Name -Recursive | Get-ADUser -Properties displayname, name  
+    # Add group header info
+    $groupInfo = Get-ADGroup -Identity $g.Name -Properties Description | 
+                 Select-Object @{N="Type";E={"GROUP"}}, Name, Description,
+                               @{N="DisplayName";E={""}}
+    $rows += $groupInfo
 
-ForEach ($r in $results){
+    # Add members
+    $members = Get-ADGroupMember -Identity $g.Name -Recursive | 
+               Get-ADUser -Properties DisplayName, Name |
+               Select-Object @{N="Type";E={"MEMBER"}}, Name, 
+                             @{N="Description";E={""}}, DisplayName
 
-New-Object PSObject -Property @{       
+    $rows += $members
 
-    DisplayName = $r.displayname | Out-File $path -Append
-
-  }
-
-}   
-
-} 
+    $rows | Export-Csv -Path $path -NoTypeInformation -Encoding UTF8
+}
